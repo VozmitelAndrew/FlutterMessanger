@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:p3/components/MyButton.dart';
 
 import '../components/MyTextField.dart';
-import '../logic/Authentication.dart';
+import '../logic/AuthenticationService.dart';
 import 'ChatScreenPage.dart';
 
 class LoginRegisterPage extends StatefulWidget {
@@ -25,17 +25,17 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
       email: emailController.text,
       password: passwordController.text,
     );
-    if (result.isSuccess) {
+    if (result is AuthSuccessLogin) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder:
               (context) =>
-                  ChatsPage(jwt: result.jwt!, refreshToken: result.refresh!),
+                  ChatsPage(jwt: result.tokens.jwt, refreshToken: result.tokens.refreshToken),
         ),
       );
-    } else {
+    } else if (result is AuthFailure) {
       setState(() {
-        _errorMessage = result.errorMessage;
+        _errorMessage = result.error;
       });
     }
   }
@@ -56,17 +56,17 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
       tag: tagController.text.isNotEmpty ? tagController.text : null,
       password: passwordController.text,
     );
-    if (result.isSuccess) {
+    if (result is AuthSuccessLogin) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder:
               (context) =>
-                  ChatsPage(jwt: result.jwt!, refreshToken: result.refresh!),
+                  ChatsPage(jwt: result.tokens.jwt, refreshToken: result.tokens.refreshToken),
         ),
       );
-    } else {
+    } else if (result is AuthFailure) {
       setState(() {
-        _errorMessage = result.errorMessage;
+        _errorMessage = result.error;
       });
     }
   }

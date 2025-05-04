@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:p3/components/MyButton.dart';
+import 'package:p3/components/MyDrawer.dart';
 import 'LoginRegisterPage.dart';
 
 class ChatsPage extends StatefulWidget {
@@ -13,6 +14,27 @@ class ChatsPage extends StatefulWidget {
 }
 
 class _ChatsPageState extends State<ChatsPage> {
+  List<Map<String, String>> chats = [
+    {
+      "name": "Пипипопа",
+      "lastMessage": "henlo?",
+      "time": "15:20",
+      "avatarUrl": "",
+    },
+    {
+      "name": "Рабочий чат",
+      "lastMessage": "отдыхаем товарищи",
+      "time": "14:10",
+      "avatarUrl": "",
+    },
+    {
+      "name": "Mom",
+      "lastMessage": "henlo?",
+      "time": "13:00",
+      "avatarUrl": "",
+    },
+  ];
+
   void backToLogin() {
     print("BackToLogin");
     Navigator.of(context).pushReplacement(
@@ -36,9 +58,35 @@ class _ChatsPageState extends State<ChatsPage> {
               ],
             ),
           ),
-          MyButton(text: "Выйти", onTap: backToLogin),
+          Expanded(
+            child: ListView.builder(
+              itemCount: chats.length,
+              itemBuilder: (context, index) {
+                final chat = chats[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blueAccent,
+                    child: Text(
+                      chat["name"]![0],
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  title: Text(
+                    chat["name"] ?? "",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(chat["lastMessage"] ?? ""),
+                  trailing: Text(chat["time"] ?? ""),
+                  onTap: () {
+
+                  },
+                );
+              },
+            ),
+          ),
         ],
       ),
+      drawer: MyDrawer(),
     );
   }
 }
