@@ -117,8 +117,22 @@ class ChatMessageService implements Viewer {
   //   }
   //   throw Exception('Ошибка загрузки истории: \${resp.statusCode}');
   // }
+  Future<List<Message>> getPreviousMessages({
+  required String chatId,
+  }) async {
+    final resp = await http.get(
+      Uri.parse('$_baseUrl/chats/$chatId/messages'),
+      headers: _authHeader(),
+    );
+    if (resp.statusCode == 200) {
+      final List data = jsonDecode(resp.body) as List;
+      print(data);
+      return data.map((e) => Message.fromJson(e)).toList();
+    }
+    throw Exception('Ошибка загрузки истории: \${resp.statusCode}');
+  }
 
-  Future<List<Message>> getNewMessages({
+  Future<List<Message>> getBeforeMessages({
     required String chatId,
     required String messageId,
   }) async {

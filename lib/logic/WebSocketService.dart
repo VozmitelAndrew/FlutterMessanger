@@ -27,7 +27,7 @@ class WebSocketService extends Teller implements MessengerConnectionProvider {
 
   void init({required String url}) {
     //_authService = authService;
-    _url = url;
+    _url = 'http://localhost:8080';
     //Стоит ли пытаться делать коннект при создании?
     connect();
   }

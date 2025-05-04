@@ -12,8 +12,10 @@ abstract class AuthenticationService {
   Future<AuthResult> login({required String email, required String password});
   Future<AuthResult> refresh();
   Future<AuthResult> logout();
+  Future<bool> myId();
 
   AuthTokens? get tokens;
+  String? id;
   String get jwt;
 }
 
@@ -31,11 +33,15 @@ sealed class AuthResult {
 }
 
 class HttpAuthService implements AuthenticationService {
-  final String _baseUrl;
+  HttpAuthService._internal();
+  static final HttpAuthService _instance = HttpAuthService._internal();
+  factory HttpAuthService() => _instance;
+
+
+  final String _baseUrl = 'http://localhost:8080';
   AuthTokens? _tokens;
   String? _email;
 
-  HttpAuthService(this._baseUrl);
 
   @override
   Future<AuthResult> register({
@@ -113,6 +119,7 @@ class HttpAuthService implements AuthenticationService {
       //Предполагаю, что обнуление email может привести к ошибкам с refresh. Ну будем верить что я умний и не будет nullexception :D
       _email = null;
       _tokens = null;
+      id = null;
 
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (response.statusCode == 200) {
@@ -131,6 +138,9 @@ class HttpAuthService implements AuthenticationService {
   //TODO - упаковать в отдельный класс и сделать через call()? Ну пока слишком мало функционала - сойдёт за обычный метод.
   AuthResult _responseHandler(http.Response response) {
     if (response.statusCode == 200) {
+      if(id == null){
+        myId();
+      }
       final Map<String, dynamic> data = jsonDecode(response.body);
       final String? refresh = data['refresh'];
       final String? jwt = data['jwt'];
@@ -157,6 +167,24 @@ class HttpAuthService implements AuthenticationService {
       throw Exception('JWT token пуст при попытке предоставления!');
     }
     return _tokens?.jwt ?? '';
+  }
+
+  @override
+  String? id;
+
+  @override
+  Future<bool> myId() async {
+    // TODO: implement myId
+    final response = await http.get(
+      Uri.parse('$_baseUrl/users/me'),
+    );
+    if(response.statusCode != 200){
+      print("не получил id?");
+      return false;
+    }
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    id = data['id'];
+    return true;
   }
 }
 

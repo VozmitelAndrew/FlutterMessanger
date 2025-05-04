@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:p3/pages/ChatScreenPage.dart';
+import 'package:p3/pages/ChatsScreenPage.dart';
 import 'package:p3/pages/LoginRegisterPage.dart';
 
 void main() {
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       //home: LoginRegisterPage(),
-      home: ChatsPage(jwt: "1", refreshToken: "1"),
+      home: LoginRegisterPage(),
     );
   }
 }

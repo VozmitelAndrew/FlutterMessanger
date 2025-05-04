@@ -3,7 +3,7 @@ import 'package:p3/components/MyButton.dart';
 
 import '../components/MyTextField.dart';
 import '../logic/AuthenticationService.dart';
-import 'ChatScreenPage.dart';
+import 'ChatsScreenPage.dart';
 
 class LoginRegisterPage extends StatefulWidget {
   const LoginRegisterPage({super.key});
@@ -13,9 +13,7 @@ class LoginRegisterPage extends StatefulWidget {
 }
 
 class _LoginRegisterPageState extends State<LoginRegisterPage> {
-  final AuthenticationService _authService = HttpAuthService(
-    'http://localhost:8080',
-  );
+  final AuthenticationService _authService = HttpAuthService();
 
   Future<void> login() async {
     setState(() {
@@ -30,7 +28,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         MaterialPageRoute(
           builder:
               (context) =>
-                  ChatsPage(jwt: result.tokens.jwt, refreshToken: result.tokens.refreshToken),
+                  ChatsPage(),
         ),
       );
     } else if (result is AuthFailure) {
@@ -61,7 +59,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         MaterialPageRoute(
           builder:
               (context) =>
-                  ChatsPage(jwt: result.tokens.jwt, refreshToken: result.tokens.refreshToken),
+                  ChatsPage(),
         ),
       );
     } else if (result is AuthFailure) {
