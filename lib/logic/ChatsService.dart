@@ -6,18 +6,34 @@ import 'package:http/http.dart' as http;
 import 'AuthenticationService.dart';
 import 'WebSocketService.dart';
 
-/// Сервис управления чатами
-class ChatService {
-  ChatService._internal();
-  static final ChatService _instance = ChatService._internal();
-  factory ChatService() => _instance;
+abstract class ChatsService {
+  Future<Chat> createChat({required String name});
 
+  Future<List<Chat>> getChats();
+
+  Future<bool> updateChat({required String chatId, required String newName});
+
+  Future<bool> deleteChat({required String chatId});
+
+  Future<Member?> addMember({
+    required String chatId,
+    required String tag,
+    required Role role,
+  });
+
+  Future<bool> deleteMember({required String chatId, required String memberId});
+}
+
+class HTTPChatsService implements ChatsService {
+  HTTPChatsService._internal();
+
+  static final HTTPChatsService _instance = HTTPChatsService._internal();
+
+  factory HTTPChatsService() => _instance;
 
   final String _baseUrl = 'http://localhost:8080';
   final AuthenticationService _authService = HttpAuthService();
   final WebSocketService _wsService = WebSocketService();
-
-
 
   /// Создание нового чата
   Future<Chat> createChat({required String name}) async {
@@ -40,10 +56,7 @@ class ChatService {
   Future<List<Chat>> getChats() async {
     print("птыюась получить список чатов");
     final uri = Uri.parse('$_baseUrl/chats');
-    final response = await http.get(
-      uri,
-      headers: _authHeader(),
-    );
+    final response = await http.get(uri, headers: _authHeader());
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body) as List;
       return data.map((e) => Chat.fromJson(e)).toList();
@@ -74,10 +87,7 @@ class ChatService {
   /// Удаление чата (только админ)
   Future<bool> deleteChat({required String chatId}) async {
     final uri = Uri.parse('$_baseUrl/chats/$chatId');
-    final response = await http.delete(
-      uri,
-      headers: _authHeader(),
-    );
+    final response = await http.delete(uri, headers: _authHeader());
     if (response.statusCode == 200 || response.statusCode == 204) {
       return true;
     }
@@ -85,9 +95,9 @@ class ChatService {
   }
 
   Future<Member?> addMember({
-  required String chatId,
-  required String tag,
-  required Role role
+    required String chatId,
+    required String tag,
+    required Role role,
   }) async {
     final uri = Uri.parse('$_baseUrl/chats/$chatId/users');
     final response = await http.post(
@@ -105,23 +115,16 @@ class ChatService {
   }
 
   Future<bool> deleteMember({
-  required String chatId,
-  required String memberId,
+    required String chatId,
+    required String memberId,
   }) async {
     final uri = Uri.parse('$_baseUrl/chats/$chatId//members/$memberId');
-    final response = await http.delete(
-      uri,
-      headers: _authHeader(),
-    );
+    final response = await http.delete(uri, headers: _authHeader());
     if (response.statusCode == 200 || response.statusCode == 204) {
       return true;
     }
     return false;
   }
-
-
-
-
 
   /// Заголовки для авторизации
   Map<String, String> _authHeader() => {
@@ -130,16 +133,12 @@ class ChatService {
   };
 }
 
-
-
-
-
-
 enum Role {
   member('MEMBER'),
   admin('ADMIN');
 
   final String value;
+
   const Role(this.value);
 }
 
@@ -148,6 +147,7 @@ enum Activity {
   active('ACTIVE');
 
   final String value;
+
   const Activity(this.value);
 }
 
@@ -179,12 +179,11 @@ class Member {
   };
 }
 
-
 /// Модель чата
 class Chat {
   final String chatId;
-  final String name;
-  final int membersQuantity;
+  String name;
+  int membersQuantity;
 
   Chat({
     required this.name,
@@ -198,8 +197,5 @@ class Chat {
     membersQuantity: json['membersQuantity'],
   );
 
-  Map<String, dynamic> toJson() => {
-    'chatId': chatId,
-    'name': name,
-  };
+  Map<String, dynamic> toJson() => {'chatId': chatId, 'name': name};
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:p3/stubs/StubLogicChats.dart';
 
 import '../logic/ChatsService.dart';
 
@@ -20,7 +21,8 @@ class MyAddChatPopup extends StatelessWidget {
         TextButton(
           onPressed: () {
             final chatName = _nameController.text;
-            ChatService ch = ChatService();
+            //TODO убрать dummy
+            ChatsService ch = DummyChatsService();
             ch.createChat(name: chatName);
             print("пытаюсь создать чат с именем $chatName");
             Navigator.of(context).pop(chatName);
@@ -29,7 +31,7 @@ class MyAddChatPopup extends StatelessWidget {
           child: const Text('Создать'),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(), // Закрыть попап
+          onPressed: () => Navigator.of(context).pop(),
           child: const Text('Отмена'),
         ),
       ],

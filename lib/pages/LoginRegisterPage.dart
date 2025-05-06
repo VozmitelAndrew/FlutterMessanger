@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:p3/components/MyButton.dart';
+import 'package:p3/stubs/StubLogicAuth.dart';
 
 import '../components/MyTextField.dart';
 import '../logic/AuthenticationService.dart';
@@ -13,7 +14,7 @@ class LoginRegisterPage extends StatefulWidget {
 }
 
 class _LoginRegisterPageState extends State<LoginRegisterPage> {
-  final AuthenticationService _authService = HttpAuthService();
+  final AuthenticationService _authService = DummyAuthenticationService();
 
   Future<void> login() async {
     setState(() {

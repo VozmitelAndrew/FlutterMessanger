@@ -4,6 +4,8 @@ import 'package:p3/components/MyDrawer.dart';
 import 'package:p3/logic/AuthenticationService.dart';
 import 'package:p3/logic/WebSocketService.dart';
 import 'package:p3/logic/ChatsService.dart';
+import 'package:p3/stubs/StubLogicAuth.dart';
+import 'package:p3/stubs/StubLogicChats.dart';
 import 'LoginRegisterPage.dart';
 import 'ChatPage.dart';
 
@@ -19,7 +21,7 @@ class ChatsPage extends StatefulWidget {
 class _ChatsPageState extends State<ChatsPage> {
   late final AuthenticationService _authService;
   late final WebSocketService _wsService;
-  late final ChatService _chatService;
+  late final ChatsService _chatService;
 
   bool _isLoading = true;
   List<Chat> _chats = [];
@@ -28,9 +30,9 @@ class _ChatsPageState extends State<ChatsPage> {
   @override
   void initState() {
     super.initState();
-    _authService = HttpAuthService();
+    _authService = DummyAuthenticationService();
     _wsService = WebSocketService();
-    _chatService = ChatService();
+    _chatService = DummyChatsService();
     _loadChats();
   }
 
@@ -51,6 +53,7 @@ class _ChatsPageState extends State<ChatsPage> {
   }
 
   void _logout() {
+    _authService.logout();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const LoginRegisterPage()),
     );
@@ -96,6 +99,7 @@ class _ChatsPageState extends State<ChatsPage> {
                 subtitle: Text(
                     'Участников: ${chat.membersQuantity}'),
                 onTap: () {
+                  print('Current user ID: ${_authService.id!}, Chat ID: ${chat.chatId}');
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => ChatScreenPage(

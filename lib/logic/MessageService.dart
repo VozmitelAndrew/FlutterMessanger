@@ -3,68 +3,63 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:p3/stubs/StubLogicAuth.dart';
 
 import '../patternTemplates/ViewerPattern.dart';
 import 'AuthenticationService.dart';
 import 'WebSocketService.dart';
 
-enum MessageAction {VIEWED,NEW,UPDATED,DELETED}
 
-class Message {
-  final String id;
-  final String chatId;
-  final String memberId;
-  final String text;
-  final DateTime timestamp;
-  final bool isEdited;
-  final bool isRead;
-  final List<String> viewedBy;
 
-  Message({
-    required this.id,
-    required this.chatId,
-    this.memberId = 'me',
-    required this.text,
-    required this.timestamp,
-    this.isEdited = false,
-    this.isRead = false,
-    this.viewedBy = const [],
+abstract class MessageService implements Viewer {
+  Future<bool> sendMessage({
+    required String chatId,
+    required String text,
   });
 
-  factory Message.fromJson(Map<String, dynamic> json) => Message(
-    id: json['id'],
-    chatId: json['chatId'],
-    memberId: json['memberId'],
-    text: json['text'],
-    timestamp: DateTime.parse(json['timestamp']),
-    isEdited: json['edited'] ?? false,
-    isRead: json['status'] == 'VIEWED',
-    viewedBy: List<String>.from(json['viewedBy'] ?? []),
-  );
+  Future<List<Message>> getPreviousMessages({
+    required String chatId,
+  });
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'chatId': chatId,
-    'memberId': memberId,
-    'text': text,
-    'timestamp': timestamp.toIso8601String(),
-    'edited': isEdited,
-    'status': isRead ? 'VIEWED' : 'NOT_VIEWED',
-    'viewedBy': viewedBy,
-  };
+  Future<List<Message>> getBeforeMessages({
+    required String chatId,
+    required String messageId,
+  });
+
+  Future<bool> editMessage({
+    required String chatId,
+    required String messageId,
+    required String newText,
+  });
+
+  Future<bool> deleteMessage({
+    required String chatId,
+    required String messageId,
+  });
+
+  Future<bool> markAction({
+    required String chatId,
+    required String messageId,
+    required MessageAction action,
+  });
+
+  Future<void> retryFailedMessage(String messageId);
+
+  void clearLocalCache(String conversationId);
+
+  Future<void> dispose();
 }
 
-/// Сервис работы с сообщениями
-class ChatMessageService implements Viewer {
-  // Зависимости
+
+
+class HTTPMessageService implements MessageService {
   final String _baseUrl;
   final AuthenticationService _authService;
   final WebSocketService _wsService;
 
-  // Локальный кеш для retry
   final Map<String, Message> _failedMessages = {};
 
-  ChatMessageService({
+  HTTPMessageService({
     required String baseUrl,
     required AuthenticationService authService,
     required WebSocketService wsService,
@@ -247,4 +242,51 @@ class ChatMessageService implements Viewer {
     // }
     print(data);
   }
+}
+
+
+enum MessageAction {VIEWED,NEW,UPDATED,DELETED}
+
+class Message {
+  final String id;
+  final String chatId;
+  String memberId = DummyAuthenticationService().id!;
+  final String text;
+  final DateTime timestamp;
+  final bool isEdited;
+  final bool isRead;
+  final List<String> viewedBy;
+
+  Message({
+    required this.id,
+    required this.chatId,
+    String? memberId,
+    required this.text,
+    required this.timestamp,
+    this.isEdited = false,
+    this.isRead = false,
+    this.viewedBy = const [],
+  }) : memberId = memberId ?? DummyAuthenticationService().id!;
+
+  factory Message.fromJson(Map<String, dynamic> json) => Message(
+    id: json['id'],
+    chatId: json['chatId'],
+    memberId: json['memberId'],
+    text: json['text'],
+    timestamp: DateTime.parse(json['timestamp']),
+    isEdited: json['edited'] ?? false,
+    isRead: json['status'] == 'VIEWED',
+    viewedBy: List<String>.from(json['viewedBy'] ?? []),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'chatId': chatId,
+    'memberId': memberId,
+    'text': text,
+    'timestamp': timestamp.toIso8601String(),
+    'edited': isEdited,
+    'status': isRead ? 'VIEWED' : 'NOT_VIEWED',
+    'viewedBy': viewedBy,
+  };
 }
