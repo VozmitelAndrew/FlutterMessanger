@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/status.dart' as status;
-import 'package:p3/logic/AuthenticationService.dart';
 import '../patternTemplates/ViewerPattern.dart';
 // import 'chat_message.dart';
 

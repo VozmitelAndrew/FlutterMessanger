@@ -7,7 +7,7 @@ class ChatScreenPage extends StatefulWidget {
   final String chatId;
   final String currentUserId;
 
-  const ChatScreenPage({
+  const ChatScreenPage({super.key, 
     required this.chatId,
     required this.currentUserId,
   });

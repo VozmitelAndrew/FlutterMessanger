@@ -136,22 +136,25 @@ class HttpAuthService implements AuthenticationService {
   }
 
   //TODO - упаковать в отдельный класс и сделать через call()? Ну пока слишком мало функционала - сойдёт за обычный метод.
-  AuthResult _responseHandler(http.Response response) {
+  Future<AuthResult> _responseHandler(http.Response response) async {
     if (response.statusCode == 200) {
-      if(id == null){
-        myId();
-      }
       final Map<String, dynamic> data = jsonDecode(response.body);
       final String? refresh = data['refresh'];
       final String? jwt = data['jwt'];
+
       if (refresh != null && jwt != null) {
         _tokens = AuthTokens(jwt: jwt, refreshToken: refresh);
+        if(id == null){
+          await myId();
+        }
         return AuthResult.successLogin(_tokens!);
       } else {
+        print('Ошибка обработки - токен пуст');
         return AuthResult.failure('Ошибка обработки - токен пуст');
       }
     } else {
       final Map<String, dynamic> data = jsonDecode(response.body);
+      print('Ошибка обработки: ${response.statusCode}');
       return AuthResult.failure(
         data['error'] ?? 'Ошибка обработки: ${response.statusCode}',
       );
@@ -174,18 +177,29 @@ class HttpAuthService implements AuthenticationService {
 
   @override
   Future<bool> myId() async {
-    // TODO: implement myId
+    print(jwt);
+    print(tokens!.refreshToken);
     final response = await http.get(
       Uri.parse('$_baseUrl/users/me'),
+      headers: _authHeader(),
     );
+    print(response.statusCode);
     if(response.statusCode != 200){
+      print(response.statusCode);
+      print(response.body);
       print("не получил id?");
       return false;
     }
     final Map<String, dynamic> data = jsonDecode(response.body);
     id = data['id'];
+    print('id');
     return true;
   }
+
+  Map<String, String> _authHeader() => {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${tokens?.jwt ?? ''}',
+  };
 }
 
 class AuthSuccessLogin implements AuthResult {

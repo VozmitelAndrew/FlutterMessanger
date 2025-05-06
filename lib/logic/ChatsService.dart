@@ -8,25 +8,20 @@ import 'WebSocketService.dart';
 
 /// Сервис управления чатами
 class ChatService {
-  final String _baseUrl;
-  final AuthenticationService _authService;
-  final WebSocketService _wsService;
+  ChatService._internal();
+  static final ChatService _instance = ChatService._internal();
+  factory ChatService() => _instance;
 
-  ChatService({
-    required String baseUrl,
-    required AuthenticationService authService,
-    required WebSocketService wsService,
-  })  : _baseUrl = baseUrl,
-        _authService = authService,
-        _wsService = wsService {
-    // При необходимости подписываемся на события создания/удаления чатов через WebSocket
-    // _wsService.init(url: 'ws://localhost:8080/ws/chats');
-    // _wsService.subscribe(this as Viewer);
-    // _wsService.listen();
-  }
+
+  final String _baseUrl = 'http://localhost:8080';
+  final AuthenticationService _authService = HttpAuthService();
+  final WebSocketService _wsService = WebSocketService();
+
+
 
   /// Создание нового чата
   Future<Chat> createChat({required String name}) async {
+    print(name);
     final uri = Uri.parse('$_baseUrl/chats');
     final response = await http.post(
       uri,
@@ -43,6 +38,7 @@ class ChatService {
 
   /// Получение списка доступных чатов
   Future<List<Chat>> getChats() async {
+    print("птыюась получить список чатов");
     final uri = Uri.parse('$_baseUrl/chats');
     final response = await http.get(
       uri,
@@ -52,7 +48,9 @@ class ChatService {
       final List data = jsonDecode(response.body) as List;
       return data.map((e) => Chat.fromJson(e)).toList();
     }
-    throw Exception('Ошибка получения списка чатов: \${response.statusCode}');
+    print(response.body);
+
+    throw Exception('Ошибка получения списка чатов: ${response.statusCode}');
   }
 
   /// Обновление названия чата
@@ -128,12 +126,9 @@ class ChatService {
   /// Заголовки для авторизации
   Map<String, String> _authHeader() => {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer \${_authService.tokens?.jwt ?? ''}',
+    'Authorization': 'Bearer ${_authService.tokens?.jwt ?? ''}',
   };
 }
-
-
-
 
 
 

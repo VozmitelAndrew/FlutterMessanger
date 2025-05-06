@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:p3/components/MyAddChatPopup.dart';
 import 'package:p3/components/MyDrawer.dart';
 import 'package:p3/logic/AuthenticationService.dart';
 import 'package:p3/logic/WebSocketService.dart';
-import 'package:p3/logic/ChatService.dart';
+import 'package:p3/logic/ChatsService.dart';
 import 'LoginRegisterPage.dart';
 import 'ChatPage.dart';
 
 class ChatsPage extends StatefulWidget {
   const ChatsPage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ChatsPage> createState() => _ChatsPageState();
@@ -29,16 +30,12 @@ class _ChatsPageState extends State<ChatsPage> {
     super.initState();
     _authService = HttpAuthService();
     _wsService = WebSocketService();
-    _chatService = ChatService(
-      baseUrl: 'http://localhost:8080',
-      authService: _authService,
-      wsService: _wsService,
-    );
-
+    _chatService = ChatService();
     _loadChats();
   }
 
   Future<void> _loadChats() async {
+    print("пытаюсь перезагрузить чаты");
     try {
       final chats = await _chatService.getChats();
       setState(() {
@@ -72,39 +69,67 @@ class _ChatsPageState extends State<ChatsPage> {
         ],
       ),
       drawer: const MyDrawer(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text('Ошибка: $_error'))
-          : ListView.builder(
-        itemCount: _chats.length,
-        itemBuilder: (context, index) {
-          final chat = _chats[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.blueAccent,
-              child: Text(
-                chat.name.isNotEmpty ? chat.name[0] : '?',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-            title: Text(
-              chat.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text('Участников: ${chat.membersQuantity}'),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ChatScreenPage(
-                    chatId: chat.chatId,
-                    currentUserId: _authService.id!,
+      body: Stack(
+        children: [
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+              ? Center(child: Text('Ошибка: $_error'))
+              : ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80),
+            itemCount: _chats.length,
+            itemBuilder: (context, index) {
+              final chat = _chats[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.blueAccent,
+                  child: Text(
+                    chat.name.isNotEmpty ? chat.name[0] : '?',
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
+                title: Text(
+                  chat.name,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                    'Участников: ${chat.membersQuantity}'),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreenPage(
+                        chatId: chat.chatId,
+                        currentUserId: _authService.id!,
+                      ),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
+          ),
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                FloatingActionButton(
+                  onPressed: _loadChats,
+                  child: const Icon(Icons.refresh),
+                ),
+                FloatingActionButton(
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (context) => MyAddChatPopup(),
+                  ),
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

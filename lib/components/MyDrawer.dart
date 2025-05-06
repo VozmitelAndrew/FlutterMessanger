@@ -12,9 +12,9 @@ class MyDrawer extends StatelessWidget {
 
   void logOut(){
     //TODO поменять localhost в продакшене
-    final AuthenticationService _authService = HttpAuthService();
+    final AuthenticationService authService = HttpAuthService();
 
-    _authService.logout();
+    authService.logout();
   }
 
   @override
