@@ -33,9 +33,10 @@ class HTTPChatsService implements ChatsService {
 
   final String _baseUrl = 'http://localhost:8080';
   final AuthenticationService _authService = HttpAuthService();
-  final WebSocketService _wsService = WebSocketService();
+  final WebSocketServiceImpl _wsService = WebSocketServiceImpl();
 
   /// Создание нового чата
+  @override
   Future<Chat> createChat({required String name}) async {
     print(name);
     final uri = Uri.parse('$_baseUrl/chats');
@@ -53,6 +54,7 @@ class HTTPChatsService implements ChatsService {
   }
 
   /// Получение списка доступных чатов
+  @override
   Future<List<Chat>> getChats() async {
     print("птыюась получить список чатов");
     final uri = Uri.parse('$_baseUrl/chats');
@@ -67,6 +69,7 @@ class HTTPChatsService implements ChatsService {
   }
 
   /// Обновление названия чата
+  @override
   Future<bool> updateChat({
     required String chatId,
     required String newName,
@@ -85,6 +88,7 @@ class HTTPChatsService implements ChatsService {
   }
 
   /// Удаление чата (только админ)
+  @override
   Future<bool> deleteChat({required String chatId}) async {
     final uri = Uri.parse('$_baseUrl/chats/$chatId');
     final response = await http.delete(uri, headers: _authHeader());
@@ -94,6 +98,7 @@ class HTTPChatsService implements ChatsService {
     return false;
   }
 
+  @override
   Future<Member?> addMember({
     required String chatId,
     required String tag,
@@ -114,6 +119,7 @@ class HTTPChatsService implements ChatsService {
     return null;
   }
 
+  @override
   Future<bool> deleteMember({
     required String chatId,
     required String memberId,
@@ -153,9 +159,9 @@ enum Activity {
 
 class Member {
   final String memberId;
-  final String username;
-  final Role role;
-  final Activity activity;
+  String username;
+  Role role;
+  Activity activity;
 
   Member({
     required this.memberId,

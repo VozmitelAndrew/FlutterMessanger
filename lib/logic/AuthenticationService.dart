@@ -175,6 +175,7 @@ class HttpAuthService implements AuthenticationService {
   @override
   String? id;
 
+  //TODO рефактор myId на myInfo, создание структуры MiInfo внутри AuthService
   @override
   Future<bool> myId() async {
     print(jwt);
@@ -187,7 +188,6 @@ class HttpAuthService implements AuthenticationService {
     if(response.statusCode != 200){
       print(response.statusCode);
       print(response.body);
-      print("не получил id?");
       return false;
     }
     final Map<String, dynamic> data = jsonDecode(response.body);

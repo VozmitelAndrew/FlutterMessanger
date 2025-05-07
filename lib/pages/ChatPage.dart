@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:p3/components/MyMembersManipPopup.dart';
-import 'package:p3/stubs/StubLogicAuth.dart';
 import 'package:p3/stubs/StubLogicMessage.dart';
-import '../components/MyAddChatPopup.dart';
 import '../logic/MessageService.dart';
-import '../logic/AuthenticationService.dart';
-import '../logic/WebSocketService.dart';
 
 class ChatScreenPage extends StatefulWidget {
   final String chatId;
@@ -72,7 +68,7 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
             child: CircleAvatar(
               backgroundColor: Theme.of(context).primaryColor,
               child: IconButton(
-                icon: Icon(Icons.add, color: Colors.white),
+                icon: Icon(Icons.more_vert , color: Colors.white),
                 onPressed:
                     () => showDialog(
                       context: context,
@@ -112,26 +108,32 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
   }
 
   Widget _buildMessageBubble(Message msg, bool isMe) {
-    //print('Я ли: $isMe');
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-        decoration: BoxDecoration(
-          color: isMe ? Theme.of(context).primaryColor : Colors.grey[300],
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          msg.text,
-          style: TextStyle(
-            color: isMe ? Colors.white : Colors.black26,
-            fontSize: 18,
+      child: GestureDetector(
+        onLongPress: () async {
+          await mss.deleteMessage(chatId: widget.chatId, messageId: msg.id);
+          await _loadMessages();
+        },
+        child: Container(
+          margin: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          decoration: BoxDecoration(
+            color: isMe ? Theme.of(context).primaryColor : Colors.grey[300],
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            msg.text,
+            style: TextStyle(
+              color: isMe ? Colors.white : Colors.black87,
+              fontSize: 18,
+            ),
           ),
         ),
       ),
     );
   }
+
 
   Widget _buildInputArea() {
     return SafeArea(

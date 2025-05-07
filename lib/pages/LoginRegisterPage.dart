@@ -117,9 +117,9 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
       body: Padding(
         padding: EdgeInsets.fromLTRB(
           screenWidth * 0.2,
-          screenHeight * 0.15,
+          screenHeight * (isLoginMode ? 0.15 : 0.1),
           screenWidth * 0.2,
-          screenHeight * 0.2,
+          screenHeight * (isLoginMode ? 0.2 : 0.1),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -140,12 +140,6 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
               obscureText: false,
             ),
 
-            MyTextField(
-              hintText: "Password:",
-              controller: passwordController,
-              obscureText: true,
-            ),
-
             Visibility(
               visible: !isLoginMode,
               child: MyTextField(
@@ -153,6 +147,12 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
                 controller: tagController,
                 obscureText: true,
               ),
+            ),
+
+            MyTextField(
+              hintText: "Password:",
+              controller: passwordController,
+              obscureText: true,
             ),
 
             Visibility(

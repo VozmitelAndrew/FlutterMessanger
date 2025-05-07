@@ -1,98 +1,116 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:web_socket_channel/io.dart';
 import '../patternTemplates/ViewerPattern.dart';
-// import 'chat_message.dart';
 
 enum WSConnectionState { disconnected, connecting, connected, error }
 
-abstract class MessengerConnectionProvider {}
+abstract class WebsocketService {
+  Future<void> connect();
+  Future<void> disconnect();
+  bool send(String? msg);
+  void listen();
+  void translateData(String? message);
+  void dispose();
+  WSConnectionState get connectionState;
+  Stream<String?> get messages;
+}
 
-class WebSocketService extends Teller implements MessengerConnectionProvider {
-  // 1) Singleton
-  static final WebSocketService _instance = WebSocketService._internal();
+class WebSocketServiceImpl extends Teller implements WebsocketService {
+  static final WebSocketServiceImpl _instance = WebSocketServiceImpl._internal();
+  factory WebSocketServiceImpl() => _instance;
+  WebSocketServiceImpl._internal();
 
-  factory WebSocketService() => _instance;
-
-  WebSocketService._internal();
-
-  // 2) Внешние зависимости
-  //late final AuthenticationService _authService;
-  late final String _url;
-
-  // 3) Внутренние поля
-  //канал вэбсокета - главная артерия
+  late final String _url =  'ws://localhost:8080/ws';
   IOWebSocketChannel? _channel;
+  final StreamController<String?> _messageController = StreamController.broadcast();
+  WSConnectionState _state = WSConnectionState.disconnected;
 
-  void init({required String url}) {
-    //_authService = authService;
-    _url = 'http://localhost:8080';
-    //Стоит ли пытаться делать коннект при создании?
-    connect();
+  @override
+  WSConnectionState get connectionState => _state;
+
+  @override
+  Stream<String?> get messages => _messageController.stream;
+
+  Future<void> init() async {
+    await connect();
   }
 
-  /// Устанавливает соединение
+  @override
   Future<void> connect() async {
-    _channel = IOWebSocketChannel.connect(_url);
-  }
-
-  /// Отключает соединение и запрещает авто-переподключение
-  Future<void> disconnect() async {
-    _channel?.sink.close();
-  }
-
-  /// Отправляет сообщение, возможно стоит давать ResponceMessage? Пока просто буль
-  bool send(String? msg) {
-    if(msg != null){
-      _channel?.sink.add(msg);
+    _state = WSConnectionState.connecting;
+    try {
+      _channel = IOWebSocketChannel.connect(_url);
+      _state = WSConnectionState.connected;
+      listen();
+    } catch (e) {
+      _state = WSConnectionState.error;
+      _scheduleReconnect();
     }
-    return true;
   }
 
-  // === Обработка событий ===
+  @override
+  Future<void> disconnect() async {
+    _state = WSConnectionState.disconnected;
+    _channel?.sink.close();
+    _reconnectTimer?.cancel();
+  }
 
+  @override
+  bool send(String? msg) {
+    if (msg != null && _state == WSConnectionState.connected) {
+      _channel?.sink.add(msg);
+      return true;
+    }
+    return false;
+  }
+
+  @override
   void listen() {
     _channel?.stream.listen(
-      (message) {
-        // Handle incoming message
-        print('Received: $message');
+          (message) {
+        _messageController.add(message);
+        //translateData(message);
+        _handleEvent(message!);
       },
       onDone: () {
-        // Handle WebSocket closing
-        print('WebSocket closed');
+        _state = WSConnectionState.disconnected;
+        _scheduleReconnect();
       },
       onError: (error) {
-        // Handle error
-        print('Error: $error');
+        _state = WSConnectionState.error;
+        _scheduleReconnect();
       },
     );
   }
 
-  //через подписчиков
   @override
   void translateData(String? message) {
-    print("HELLO! I am gonna translate SMH");
     for (final viewer in subscribersList) {
       viewer.notice(message);
     }
   }
 
-  // === Логика переподключения ===
+  void _handleEvent(String message) {
+    final data = jsonDecode(message) as Map<String, dynamic>;
+    final eventType = data['eventType'];
+    final payload = data['payload'];
+    print('EventType: $eventType');
+    print('Payload: $payload');
+  }
+
   int _reconnectAttempts = 0;
   Timer? _reconnectTimer;
 
   void _scheduleReconnect() {
     _reconnectAttempts++;
-    final delay = Duration(
-      seconds: (1 << (_reconnectAttempts.clamp(0, 5))),
-    ); // 1,2,4,8,16,32
+    final delay = Duration(seconds: 1 << (_reconnectAttempts.clamp(0, 5)));
     _reconnectTimer = Timer(delay, () => connect());
   }
 
   @override
   void dispose() {
-    //_channel?.sink.close();
+    _messageController.close();
     disconnect();
-    //у чувака было по-другому :D
-    // super.dispose();
   }
 }

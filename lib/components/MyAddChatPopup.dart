@@ -7,7 +7,7 @@ import '../logic/ChatsService.dart';
 class MyAddChatPopup extends StatelessWidget {
   final TextEditingController _nameController = TextEditingController();
 
-  MyAddChatPopup({Key? key}) : super(key: key);
+  MyAddChatPopup({super.key});
 
   @override
   Widget build(BuildContext context) {

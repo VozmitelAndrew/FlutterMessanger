@@ -1,3 +1,5 @@
+import 'package:p3/stubs/StubLogicAuth.dart';
+
 import '../logic/ChatsService.dart';
 
 class DummyChatsService implements ChatsService {
@@ -7,7 +9,7 @@ class DummyChatsService implements ChatsService {
 
 
   final Map<String, Chat> _chats = {};
-  final Map<String, List<Member>> _members = {};
+  final Map<String, List<Member>> membersMap = {};
   int _chatCounter = 0;
   int _memberCounter = 1;
 
@@ -20,7 +22,14 @@ class DummyChatsService implements ChatsService {
     final chat = Chat(chatId: chatId, name: name, membersQuantity: 1);
     _chats[chatId] = chat;
     print(_chats.values);
-    _members[chatId] = [];
+    final creatorMember = Member(
+      memberId: DummyAuthenticationService().id!,
+      //TODO рефактор myId на myInfo, создание структруы MiInfo внутри AuthService
+      username: 'me',
+      role: Role.admin,
+      activity: Activity.active,
+    );
+    membersMap[chatId] = [creatorMember];
     return chat;
   }
 
@@ -44,7 +53,7 @@ class DummyChatsService implements ChatsService {
   Future<bool> deleteChat({required String chatId}) async {
     await Future.delayed(Duration(milliseconds: 300));
     final removed = _chats.remove(chatId) != null;
-    _members.remove(chatId);
+    membersMap.remove(chatId);
     return removed;
   }
 
@@ -55,12 +64,10 @@ class DummyChatsService implements ChatsService {
     required Role role,
   }) async {
     await Future.delayed(Duration(milliseconds: 300));
-    print("я пытаюст добавить нового мембера");
+    print("я пытаюсь добавить нового мембера");
     final chat = _chats[chatId];
     if (chat == null) return null;
     _memberCounter++;
-    print(_memberCounter);
-    // Исправляем опечатку (убираем пробел)
     final memberId = 'member_$_memberCounter';
     final member = Member(
       memberId: memberId,
@@ -68,15 +75,15 @@ class DummyChatsService implements ChatsService {
       role: role,
       activity: Activity.inactive,
     );
-    _members[chatId]!.add(member);
-    chat.membersQuantity = _members[chatId]!.length;
+    membersMap[chatId]!.add(member);
+    chat.membersQuantity = membersMap[chatId]!.length;
     return member;
   }
 
   @override
   Future<bool> deleteMember({required String chatId, required String memberId}) async {
     await Future.delayed(Duration(milliseconds: 300));
-    final members = _members[chatId];
+    final members = membersMap[chatId];
     if (members == null) return false;
     final initialCount = members.length;
     members.removeWhere((m) => m.memberId == memberId);

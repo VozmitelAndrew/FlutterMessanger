@@ -7,7 +7,6 @@ class DummyAuthenticationService implements AuthenticationService {
   static final DummyAuthenticationService _instance = DummyAuthenticationService._internal();
   factory DummyAuthenticationService() => _instance;
 
-
   AuthTokens? _tokens;
 
   @override

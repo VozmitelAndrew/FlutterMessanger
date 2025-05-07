@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:p3/pages/ChatsScreenPage.dart';
 import 'package:p3/pages/LoginRegisterPage.dart';
 
 void main() {

@@ -55,23 +55,24 @@ abstract class MessageService implements Viewer {
 class HTTPMessageService implements MessageService {
   final String _baseUrl;
   final AuthenticationService _authService;
-  final WebSocketService _wsService;
+  final WebSocketServiceImpl _wsService;
 
   final Map<String, Message> _failedMessages = {};
 
   HTTPMessageService({
     required String baseUrl,
     required AuthenticationService authService,
-    required WebSocketService wsService,
+    required WebSocketServiceImpl wsService,
   }) : _baseUrl = baseUrl,
        _authService = authService,
        _wsService = wsService {
-    _wsService.init(url: 'ws://localhost:8080/ws');
+    _wsService.init();
     _wsService.subscribe(this);
     _wsService.listen();
   }
 
   /// Отправка сообщения по WebSocket
+  @override
   Future<bool> sendMessage({
     required String chatId,
     required String text,
@@ -112,6 +113,7 @@ class HTTPMessageService implements MessageService {
   //   }
   //   throw Exception('Ошибка загрузки истории: \${resp.statusCode}');
   // }
+  @override
   Future<List<Message>> getPreviousMessages({
   required String chatId,
   }) async {
@@ -127,6 +129,7 @@ class HTTPMessageService implements MessageService {
     throw Exception('Ошибка загрузки истории: \${resp.statusCode}');
   }
 
+  @override
   Future<List<Message>> getBeforeMessages({
     required String chatId,
     required String messageId,
@@ -143,6 +146,7 @@ class HTTPMessageService implements MessageService {
   }
 
   /// Редактирование сообщения
+  @override
   Future<bool> editMessage({
     required String chatId,
     required String messageId,
@@ -157,6 +161,7 @@ class HTTPMessageService implements MessageService {
   }
 
   /// Удаление сообщения
+  @override
   Future<bool> deleteMessage({
     required String chatId,
     required String messageId,
@@ -187,6 +192,7 @@ class HTTPMessageService implements MessageService {
   //   return results.every((isSuccess) => isSuccess);
   // }
 
+  @override
   Future<bool> markAction({
     required String chatId,
     required String messageId,
@@ -200,6 +206,7 @@ class HTTPMessageService implements MessageService {
   }
 
   /// Повтор отправки неудачных сообщений
+  @override
   Future<void> retryFailedMessage(String messageId) async {
     final msg = _failedMessages[messageId];
     if (msg != null) {
@@ -209,11 +216,13 @@ class HTTPMessageService implements MessageService {
   }
 
   /// Очистка локального кеша
+  @override
   void clearLocalCache(String conversationId) {
     _failedMessages.removeWhere((key, msg) => msg.chatId == conversationId);
   }
 
   /// Закрытие всех стримов и WS
+  @override
   Future<void> dispose() async {
     await _wsService.disconnect();
   }

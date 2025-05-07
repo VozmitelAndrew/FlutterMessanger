@@ -20,7 +20,7 @@ class ChatsPage extends StatefulWidget {
 
 class _ChatsPageState extends State<ChatsPage> {
   late final AuthenticationService _authService;
-  late final WebSocketService _wsService;
+  late final WebSocketServiceImpl _wsService;
   late final ChatsService _chatService;
 
   bool _isLoading = true;
@@ -31,7 +31,7 @@ class _ChatsPageState extends State<ChatsPage> {
   void initState() {
     super.initState();
     _authService = DummyAuthenticationService();
-    _wsService = WebSocketService();
+    _wsService = WebSocketServiceImpl();
     _chatService = DummyChatsService();
     _loadChats();
   }
@@ -64,12 +64,6 @@ class _ChatsPageState extends State<ChatsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Чаты'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
       ),
       drawer: const MyDrawer(),
       body: Stack(
