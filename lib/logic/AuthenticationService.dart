@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class AuthenticationService {
+  Future<void> init();
+
   Future<AuthResult> register({
     required String email,
     required String username,
@@ -48,6 +50,7 @@ class HttpAuthService implements AuthenticationService {
 
   // Вызывать один раз при старте приложения, ДО любых вызовов login/register.
   // Если в SharedPreferences найдены jwt+refresh+email, они будут загружены в _tokens/_email.
+  @override
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     final savedJwt = prefs.getString('auth_jwt');

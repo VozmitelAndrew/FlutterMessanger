@@ -77,4 +77,9 @@ class DummyAuthenticationService implements AuthenticationService {
     }
     return id != null;
   }
+
+  @override
+  Future<void> init() async {
+    DummyAuthenticationService();
+  }
 }

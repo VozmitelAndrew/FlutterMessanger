@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:p3/components/MyMembersManipPopup.dart';
 import 'package:p3/stubs/StubLogicMessage.dart';
+import '../components/MyMessageBubble.dart';
+import '../components/MyMessageInputBox.dart';
 import '../logic/MessageService.dart';
 
 class ChatScreenPage extends StatefulWidget {
@@ -96,77 +98,24 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
                           //print(msg.memberId);
                           //print( widget.currentUserId);
                           final isMe = msg.memberId == widget.currentUserId;
-                          return _buildMessageBubble(msg, isMe);
+                          return MessageBubble(
+                            msg: msg,
+                            isMe: isMe,
+                            onLongPress: () async {
+                              await mss.deleteMessage(chatId: widget.chatId, messageId: msg.id);
+                              await _loadMessages();
+                            },
+                          );
                         },
                       ),
                     ),
           ),
-          _buildInputArea(),
+          MessageInputArea(
+            controller: _textController,
+            focusNode: _focusNode,
+            onSend: _sendMessage,
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMessageBubble(Message msg, bool isMe) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: GestureDetector(
-        onLongPress: () async {
-          await mss.deleteMessage(chatId: widget.chatId, messageId: msg.id);
-          await _loadMessages();
-        },
-        child: Container(
-          margin: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-          decoration: BoxDecoration(
-            color: isMe ? Theme.of(context).primaryColor : Colors.grey[300],
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            msg.text,
-            style: TextStyle(
-              color: isMe ? Colors.white : Colors.black87,
-              fontSize: 18,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildInputArea() {
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _textController,
-                focusNode: _focusNode,
-                decoration: InputDecoration(
-                  hintText: 'Type a message...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                ),
-                onSubmitted: (_) => _sendMessage(),
-              ),
-            ),
-            SizedBox(width: 8),
-            CircleAvatar(
-              radius: 24,
-              child: IconButton(
-                icon: Icon(Icons.send),
-                onPressed: _sendMessage,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

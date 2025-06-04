@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:p3/components/MyButton.dart';
 import 'package:p3/stubs/StubLogicAuth.dart';
 
 import '../components/MyTextField.dart';
+import '../logic/AuthState.dart';
 import '../logic/AuthenticationService.dart';
+import '../logic/BloC Logic.dart';
 import 'ChatsScreenPage.dart';
+
+
 
 class LoginRegisterPage extends StatefulWidget {
   const LoginRegisterPage({super.key});
@@ -12,6 +17,7 @@ class LoginRegisterPage extends StatefulWidget {
   @override
   State<LoginRegisterPage> createState() => _LoginRegisterPageState();
 }
+
 
 class _LoginRegisterPageState extends State<LoginRegisterPage> {
   final AuthenticationService _authService = DummyAuthenticationService();
@@ -96,147 +102,180 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
     print(isLoginMode);
   }
 
+  //return BlocListener<AuthCubit, AuthState>(
+  //       listener: (context, state) {
+  //         if (state is AuthAuthenticated) {
+  //           Navigator.of(context).pushReplacement(
+  //             MaterialPageRoute(builder: (context) => ChatsPage()),
+  //           );
+  //         }
+  //
+  //         if (state is AuthError) {
+  //           setState(() {
+  //             _errorMessage = state.message;
+  //           });
+  //         }
+  //       },
+  //       child: Scaffold(
+  //
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Nuke",
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-            fontFamily: "Cursed",
+
+    return BlocListener<AuthCubit, AuthState>(
+        listener: (context, state) {
+          if (state is AuthAuthenticated) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => ChatsPage()),
+            );
+          }
+
+          if (state is AuthError) {
+            setState(() {
+              _errorMessage = state.message;
+            });
+          }
+        },
+        child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "Nuke",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              fontFamily: "Cursed",
+            ),
           ),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          centerTitle: true,
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(
-          screenWidth * 0.2,
-          screenHeight * (isLoginMode ? 0.15 : 0.1),
-          screenWidth * 0.2,
-          screenHeight * (isLoginMode ? 0.2 : 0.1),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          //crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Visibility(
-              visible: !isLoginMode,
-              child: MyTextField(
-                hintText: "Nickname:",
-                controller: nicknameController,
+        body: Padding(
+          padding: EdgeInsets.fromLTRB(
+            screenWidth * 0.2,
+            screenHeight * (isLoginMode ? 0.15 : 0.1),
+            screenWidth * 0.2,
+            screenHeight * (isLoginMode ? 0.2 : 0.1),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Visibility(
+                visible: !isLoginMode,
+                child: MyTextField(
+                  hintText: "Nickname:",
+                  controller: nicknameController,
+                  obscureText: false,
+                ),
+              ),
+
+              MyTextField(
+                hintText: "Email:",
+                controller: emailController,
                 obscureText: false,
               ),
-            ),
 
-            MyTextField(
-              hintText: "Email:",
-              controller: emailController,
-              obscureText: false,
-            ),
+              Visibility(
+                visible: !isLoginMode,
+                child: MyTextField(
+                  hintText: "tag:",
+                  controller: tagController,
+                  obscureText: true,
+                ),
+              ),
 
-            Visibility(
-              visible: !isLoginMode,
-              child: MyTextField(
-                hintText: "tag:",
-                controller: tagController,
+              MyTextField(
+                hintText: "Password:",
+                controller: passwordController,
                 obscureText: true,
               ),
-            ),
 
-            MyTextField(
-              hintText: "Password:",
-              controller: passwordController,
-              obscureText: true,
-            ),
-
-            Visibility(
-              visible: !isLoginMode,
-              child: MyTextField(
-                hintText: "Confirm password:",
-                controller: confirmPasswordController,
-                obscureText: true,
+              Visibility(
+                visible: !isLoginMode,
+                child: MyTextField(
+                  hintText: "Confirm password:",
+                  controller: confirmPasswordController,
+                  obscureText: true,
+                ),
               ),
-            ),
 
-            Visibility(
-              visible: !isLoginMode,
-              child: CheckboxListTile(
-                title: Text("Show email"),
-                value: showEmail,
+              Visibility(
+                visible: !isLoginMode,
+                child: CheckboxListTile(
+                  title: Text("Show email"),
+                  value: showEmail,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      showEmail = value!;
+                    });
+                  },
+                ),
+              ),
+
+              // Visibility(
+              //   visible: isLoginMode,
+              //   child: CheckboxListTile(
+              //     title: Text("Remember me"),
+              //     value: rememberMe,
+              //     onChanged: (bool? value) {
+              //       setState(() {
+              //         rememberMe = value!;
+              //       });
+              //     },
+              //   ),
+              // ),
+              CheckboxListTile(
+                title: Text("Remember me"),
+                value: rememberMe,
                 onChanged: (bool? value) {
                   setState(() {
-                    showEmail = value!;
+                    rememberMe = value!;
                   });
                 },
               ),
-            ),
 
-            // Visibility(
-            //   visible: isLoginMode,
-            //   child: CheckboxListTile(
-            //     title: Text("Remember me"),
-            //     value: rememberMe,
-            //     onChanged: (bool? value) {
-            //       setState(() {
-            //         rememberMe = value!;
-            //       });
-            //     },
-            //   ),
-            // ),
-            CheckboxListTile(
-              title: Text("Remember me"),
-              value: rememberMe,
-              onChanged: (bool? value) {
-                setState(() {
-                  rememberMe = value!;
-                });
-              },
-            ),
-
-            AnimatedSwitcher(
-              duration: Duration(milliseconds: 300),
-              child:
-                  isLoginMode
-                      ? Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          MyButton(text: "Login", onTap: login),
-                          MyButton(
-                            text: "I don't have an account",
-                            onTap: switchModes,
-                          ),
-                        ],
-                      )
-                      : Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          MyButton(text: "Register", onTap: register),
-                          MyButton(
-                            text: "I have an account",
-                            onTap: switchModes,
-                          ),
-                        ],
-                      ),
-            ),
-
-            if (_errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Text(
-                  _errorMessage!,
-                  style: TextStyle(color: Colors.red.shade200),
-                  textAlign: TextAlign.center,
-                ),
+              AnimatedSwitcher(
+                duration: Duration(milliseconds: 300),
+                child:
+                    isLoginMode
+                        ? Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            MyButton(text: "Login", onTap: login),
+                            MyButton(
+                              text: "I don't have an account",
+                              onTap: switchModes,
+                            ),
+                          ],
+                        )
+                        : Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            MyButton(text: "Register", onTap: register),
+                            MyButton(
+                              text: "I have an account",
+                              onTap: switchModes,
+                            ),
+                          ],
+                        ),
               ),
-          ],
+
+              if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.red.shade200),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
+          ),
         ),
-      ),
+      )
     );
   }
 
