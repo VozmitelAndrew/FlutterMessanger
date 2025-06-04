@@ -35,7 +35,6 @@ class HTTPChatsService implements ChatsService {
   final AuthenticationService _authService = HttpAuthService();
   final WebSocketServiceImpl _wsService = WebSocketServiceImpl();
 
-  /// Создание нового чата
   @override
   Future<Chat> createChat({required String name}) async {
     print(name);
@@ -53,7 +52,6 @@ class HTTPChatsService implements ChatsService {
     throw Exception('Ошибка создания чата: ${response.statusCode}');
   }
 
-  /// Получение списка доступных чатов
   @override
   Future<List<Chat>> getChats() async {
     print("птыюась получить список чатов");
@@ -68,7 +66,6 @@ class HTTPChatsService implements ChatsService {
     throw Exception('Ошибка получения списка чатов: ${response.statusCode}');
   }
 
-  /// Обновление названия чата
   @override
   Future<bool> updateChat({
     required String chatId,
@@ -87,7 +84,6 @@ class HTTPChatsService implements ChatsService {
     return true;
   }
 
-  /// Удаление чата (только админ)
   @override
   Future<bool> deleteChat({required String chatId}) async {
     final uri = Uri.parse('$_baseUrl/chats/$chatId');
@@ -132,7 +128,6 @@ class HTTPChatsService implements ChatsService {
     return false;
   }
 
-  /// Заголовки для авторизации
   Map<String, String> _authHeader() => {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer ${_authService.tokens?.jwt ?? ''}',
@@ -185,7 +180,6 @@ class Member {
   };
 }
 
-/// Модель чата
 class Chat {
   final String chatId;
   String name;

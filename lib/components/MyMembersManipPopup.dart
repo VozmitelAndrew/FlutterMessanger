@@ -74,7 +74,7 @@ class _MyMembersManipPopupState extends State<MyMembersManipPopup> {
           ),
           const SizedBox(height: 8),
           TextButton(
-            onPressed: _selectedMember == null
+            onPressed: _selectedMember == null || _selectedMember?.memberId != 'me'
                 ? null
                 : () async {
               final success = await _ch.deleteMember(

@@ -71,7 +71,6 @@ class HTTPMessageService implements MessageService {
     _wsService.listen();
   }
 
-  /// Отправка сообщения по WebSocket
   @override
   Future<bool> sendMessage({
     required String chatId,
@@ -145,7 +144,6 @@ class HTTPMessageService implements MessageService {
     throw Exception('Ошибка загрузки истории: \${resp.statusCode}');
   }
 
-  /// Редактирование сообщения
   @override
   Future<bool> editMessage({
     required String chatId,
@@ -160,7 +158,6 @@ class HTTPMessageService implements MessageService {
     return resp.statusCode == 200;
   }
 
-  /// Удаление сообщения
   @override
   Future<bool> deleteMessage({
     required String chatId,
@@ -205,7 +202,6 @@ class HTTPMessageService implements MessageService {
     return response.statusCode == 200;
   }
 
-  /// Повтор отправки неудачных сообщений
   @override
   Future<void> retryFailedMessage(String messageId) async {
     final msg = _failedMessages[messageId];
@@ -215,13 +211,11 @@ class HTTPMessageService implements MessageService {
     }
   }
 
-  /// Очистка локального кеша
   @override
   void clearLocalCache(String conversationId) {
     _failedMessages.removeWhere((key, msg) => msg.chatId == conversationId);
   }
 
-  /// Закрытие всех стримов и WS
   @override
   Future<void> dispose() async {
     await _wsService.disconnect();
@@ -233,7 +227,6 @@ class HTTPMessageService implements MessageService {
     'Authorization': 'Bearer ${_authService.tokens?.jwt ?? ''}',
   };
 
-  /// Обработка входящих данных WebSocket
   /// TODO!!!! НИЧЕГО Не ДЕЛАЕТ НА ДАННЫЙ МОМЕНТ
   @override
   void notice(String? data) {

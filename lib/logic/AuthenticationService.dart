@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 abstract class AuthenticationService {
   Future<AuthResult> register({
     required String email,
@@ -37,10 +39,54 @@ class HttpAuthService implements AuthenticationService {
   static final HttpAuthService _instance = HttpAuthService._internal();
   factory HttpAuthService() => _instance;
 
-
   final String _baseUrl = 'http://localhost:8080';
   AuthTokens? _tokens;
   String? _email;
+
+  int refreshAttempts = 0;
+
+
+  // Вызывать один раз при старте приложения, ДО любых вызовов login/register.
+  // Если в SharedPreferences найдены jwt+refresh+email, они будут загружены в _tokens/_email.
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedJwt = prefs.getString('auth_jwt');
+    final savedRefresh = prefs.getString( 'auth_refresh');
+    final savedEmail = prefs.getString('auth_email');
+
+    if (savedJwt != null && savedRefresh != null && savedEmail != null) {
+      _tokens = AuthTokens(jwt: savedJwt, refreshToken: savedRefresh);
+      _email = savedEmail;
+      await myId();
+    }
+  }
+
+
+
+
+  Future<void> _saveTokensToPrefs({
+    required String jwt,
+    required String refreshToken,
+    required String email,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_jwt', jwt);
+    await prefs.setString( 'auth_refresh', refreshToken);
+    await prefs.setString('auth_email', email);
+  }
+
+
+  Future<void> _clearTokensFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_jwt');
+    await prefs.remove( 'auth_refresh');
+    await prefs.remove('auth_email');
+  }
+
+
+
+
+
 
 
   @override
@@ -119,6 +165,9 @@ class HttpAuthService implements AuthenticationService {
       //Предполагаю, что обнуление email может привести к ошибкам с refresh. Ну будем верить что я умний и не будет nullexception :D
       _email = null;
       _tokens = null;
+      _clearTokensFromPrefs();
+
+
       id = null;
 
       final Map<String, dynamic> data = jsonDecode(response.body);
@@ -144,14 +193,21 @@ class HttpAuthService implements AuthenticationService {
 
       if (refresh != null && jwt != null) {
         _tokens = AuthTokens(jwt: jwt, refreshToken: refresh);
+
+        _saveTokensToPrefs(email: _email!, jwt: jwt, refreshToken: refresh);
         if(id == null){
           await myId();
         }
+
+        refreshAttempts = 0;
         return AuthResult.successLogin(_tokens!);
       } else {
         print('Ошибка обработки - токен пуст');
         return AuthResult.failure('Ошибка обработки - токен пуст');
       }
+    }else if(response.statusCode == 404 || refreshAttempts < 3){
+      ++refreshAttempts;
+      return refresh();
     } else {
       final Map<String, dynamic> data = jsonDecode(response.body);
       print('Ошибка обработки: ${response.statusCode}');
@@ -180,18 +236,20 @@ class HttpAuthService implements AuthenticationService {
   Future<bool> myId() async {
     print(jwt);
     print(tokens!.refreshToken);
-    final response = await http.get(
-      Uri.parse('$_baseUrl/users/me'),
-      headers: _authHeader(),
-    );
-    print(response.statusCode);
-    if(response.statusCode != 200){
+    if(id == null){
+      final response = await http.get(
+        Uri.parse('$_baseUrl/users/me'),
+        headers: _authHeader(),
+      );
       print(response.statusCode);
-      print(response.body);
-      return false;
+      if(response.statusCode != 200){
+        print(response.statusCode);
+        print(response.body);
+        return false;
+      }
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      id = data['id'];
     }
-    final Map<String, dynamic> data = jsonDecode(response.body);
-    id = data['id'];
     print('id');
     return true;
   }
@@ -200,6 +258,7 @@ class HttpAuthService implements AuthenticationService {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer ${tokens?.jwt ?? ''}',
   };
+
 }
 
 class AuthSuccessLogin implements AuthResult {
